@@ -9,7 +9,7 @@
 # The full license is in the file LICENSE, distributed with this software. #
 ############################################################################
 
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.8)
 project(xsimd)
 option(XSIMD_REFACTORING ON)
 
@@ -42,6 +42,7 @@ ${XSIMD_INCLUDE_DIR}/xsimd/arch/xsimd_generic.hpp
 ${XSIMD_INCLUDE_DIR}/xsimd/arch/xsimd_isa.hpp
 ${XSIMD_INCLUDE_DIR}/xsimd/arch/xsimd_neon.hpp
 ${XSIMD_INCLUDE_DIR}/xsimd/arch/xsimd_neon64.hpp
+${XSIMD_INCLUDE_DIR}/xsimd/arch/xsimd_rvv.hpp
 ${XSIMD_INCLUDE_DIR}/xsimd/arch/xsimd_scalar.hpp
 ${XSIMD_INCLUDE_DIR}/xsimd/arch/xsimd_sse2.hpp
 ${XSIMD_INCLUDE_DIR}/xsimd/arch/xsimd_sse3.hpp
@@ -69,6 +70,7 @@ ${XSIMD_INCLUDE_DIR}/xsimd/types/xsimd_fma3_sse_register.hpp
 ${XSIMD_INCLUDE_DIR}/xsimd/types/xsimd_fma4_register.hpp
 ${XSIMD_INCLUDE_DIR}/xsimd/types/xsimd_generic_arch.hpp
 ${XSIMD_INCLUDE_DIR}/xsimd/types/xsimd_register.hpp
+${XSIMD_INCLUDE_DIR}/xsimd/types/xsimd_rvv_register.hpp
 ${XSIMD_INCLUDE_DIR}/xsimd/types/xsimd_sse2_register.hpp
 ${XSIMD_INCLUDE_DIR}/xsimd/types/xsimd_sse3_register.hpp
 ${XSIMD_INCLUDE_DIR}/xsimd/types/xsimd_sse4_1_register.hpp
@@ -115,6 +117,11 @@ endif()
 
 # Installation
 # ============
+
+OPTION(XSIMD_SKIP_INSTALL "Skip installation or not. By default it is OFF" OFF)
+if(${XSIMD_SKIP_INSTALL})
+    return() # skip installation
+endif ()
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 include(JoinPaths)

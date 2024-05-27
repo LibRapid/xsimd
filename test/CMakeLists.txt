@@ -9,7 +9,7 @@
 # The full license is in the file LICENSE, distributed with this software. #
 ############################################################################
 
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.8)
 
 if (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
     project(xsimd-test)
@@ -208,6 +208,7 @@ if (XSIMD_ENABLE_WERROR)
 endif()
 
 add_subdirectory(doc)
+add_subdirectory(architectures)
 
 if(EMSCRIPTEN)
     set_target_properties(test_xsimd PROPERTIES LINK_FLAGS "-s MODULARIZE=1 -s EXPORT_NAME=test_xsimd_wasm -s WASM=1 -s ALLOW_MEMORY_GROWTH=1 -lembind")

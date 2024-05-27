@@ -18,10 +18,12 @@
 #include "test_sum.hpp"
 #include "test_utils.hpp"
 
+#ifndef XSIMD_DEFAULT_ARCH
 static_assert(xsimd::default_arch::supported(), "default arch must be supported");
 static_assert(std::is_same<xsimd::default_arch, xsimd::best_arch>::value, "default arch is the best available");
 static_assert(xsimd::supported_architectures::contains<xsimd::default_arch>(), "default arch is supported");
 static_assert(xsimd::all_architectures::contains<xsimd::default_arch>(), "default arch is a valid arch");
+#endif
 
 #if !XSIMD_WITH_SVE
 static_assert((std::is_same<xsimd::default_arch, xsimd::neon64>::value || !xsimd::neon64::supported()), "on arm, without sve, the best we can do is neon64");
@@ -43,12 +45,6 @@ struct check_available
     {
         CHECK_UNARY(Arch::available());
     }
-};
-
-struct get_arch_version
-{
-    template <class Arch>
-    unsigned operator()(Arch) { return Arch::version(); }
 };
 
 template <class T>
@@ -124,15 +120,6 @@ TEST_CASE("[multi arch support]")
             float res = dispatched(data, 17);
             CHECK_EQ(ref, res);
         }
-
-        // check that we pick the most appropriate version
-        {
-            auto dispatched = xsimd::dispatch<xsimd::arch_list<xsimd::sse3, xsimd::sse2, xsimd::generic>>(get_arch_version {});
-            unsigned expected = xsimd::available_architectures().best >= xsimd::sse3::version()
-                ? xsimd::sse3::version()
-                : xsimd::sse2::version();
-            CHECK_EQ(expected, dispatched());
-        }
 #endif
     }
 
@@ -148,7 +135,7 @@ TEST_CASE("[multi arch support]")
         using batch8i32 = xsimd::make_sized_batch_t<int32_t, 8>;
         using batch8u32 = xsimd::make_sized_batch_t<uint32_t, 8>;
 
-#if XSIMD_WITH_SSE2 || XSIMD_WITH_NEON || XSIMD_WITH_NEON64 || XSIMD_WITH_SVE
+#if XSIMD_WITH_SSE2 || XSIMD_WITH_NEON || XSIMD_WITH_NEON64 || XSIMD_WITH_SVE || (XSIMD_WITH_RVV && XSIMD_RVV_BITS == 128)
         CHECK_EQ(4, size_t(batch4f::size));
         CHECK_EQ(4, size_t(batch4i32::size));
         CHECK_EQ(4, size_t(batch4u32::size));
@@ -157,7 +144,7 @@ TEST_CASE("[multi arch support]")
         CHECK_UNARY(bool(std::is_same<int32_t, batch4i32::value_type>::value));
         CHECK_UNARY(bool(std::is_same<uint32_t, batch4u32::value_type>::value));
 
-#if XSIMD_WITH_SSE2 || XSIMD_WITH_NEON64 || XSIMD_WITH_SVE
+#if XSIMD_WITH_SSE2 || XSIMD_WITH_NEON64 || XSIMD_WITH_SVE || XSIMD_WITH_RVV
         CHECK_EQ(2, size_t(batch2d::size));
         CHECK_UNARY(bool(std::is_same<double, batch2d::value_type>::value));
 #else
@@ -165,7 +152,7 @@ TEST_CASE("[multi arch support]")
 #endif
 
 #endif
-#if !XSIMD_WITH_AVX && !XSIMD_WITH_FMA3 && !(XSIMD_WITH_SVE && XSIMD_SVE_BITS == 256)
+#if !XSIMD_WITH_AVX && !XSIMD_WITH_FMA3 && !(XSIMD_WITH_SVE && XSIMD_SVE_BITS == 256) && !(XSIMD_WITH_RVV && XSIMD_RVV_BITS == 256)
         CHECK_UNARY(bool(std::is_same<void, batch8f>::value));
         CHECK_UNARY(bool(std::is_same<void, batch4d>::value));
         CHECK_UNARY(bool(std::is_same<void, batch8i32>::value));

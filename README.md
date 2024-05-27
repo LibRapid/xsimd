@@ -1,7 +1,15 @@
 # ![xsimd](docs/source/xsimd.svg)
 
-[![Appveyor](https://ci.appveyor.com/api/projects/status/wori7my48os31nu0?svg=true)](https://ci.appveyor.com/project/xtensor-stack/xsimd)
-[![Azure](https://dev.azure.com/xtensor-stack/xtensor-stack/_apis/build/status/xtensor-stack.xsimd?branchName=master)](https://dev.azure.com/xtensor-stack/xtensor-stack/_build/latest?definitionId=3&branchName=master)
+[![GHA android](https://github.com/xtensor-stack/xsimd/actions/workflows/android.yml/badge.svg)](https://github.com/xtensor-stack/xsimd/actions/workflows/android.yml)
+[![GHA cross-rvv](https://github.com/xtensor-stack/xsimd/actions/workflows/cross-rvv.yml/badge.svg)](https://github.com/xtensor-stack/xsimd/actions/workflows/cross-rvv.yml)
+[![GHA cross-sve](https://github.com/xtensor-stack/xsimd/actions/workflows/cross-sve.yml/badge.svg)](https://github.com/xtensor-stack/xsimd/actions/workflows/cross-sve.yml)
+[![GHA cross](https://github.com/xtensor-stack/xsimd/actions/workflows/cross.yml/badge.svg)](https://github.com/xtensor-stack/xsimd/actions/workflows/cross.yml)
+[![GHA cxx-no-exceptions](https://github.com/xtensor-stack/xsimd/actions/workflows/cxx-no-exceptions.yml/badge.svg)](https://github.com/xtensor-stack/xsimd/actions/workflows/cxx-no-exceptions.yml)
+[![GHA cxx-versions](https://github.com/xtensor-stack/xsimd/actions/workflows/cxx-versions.yml/badge.svg)](https://github.com/xtensor-stack/xsimd/actions/workflows/cxx-versions.yml)
+[![GHA emscripten](https://github.com/xtensor-stack/xsimd/actions/workflows/emscripten.yml/badge.svg)](https://github.com/xtensor-stack/xsimd/actions/workflows/emscripten.yml)
+[![GHA linux](https://github.com/xtensor-stack/xsimd/actions/workflows/linux.yml/badge.svg)](https://github.com/xtensor-stack/xsimd/actions/workflows/linux.yml)
+[![GHA macos](https://github.com/xtensor-stack/xsimd/actions/workflows/macos.yml/badge.svg)](https://github.com/xtensor-stack/xsimd/actions/workflows/macos.yml)
+[![GHA windows](https://github.com/xtensor-stack/xsimd/actions/workflows/windows.yml/badge.svg)](https://github.com/xtensor-stack/xsimd/actions/workflows/windows.yml)
 [![Documentation Status](http://readthedocs.org/projects/xsimd/badge/?version=latest)](https://xsimd.readthedocs.io/en/latest/?badge=latest)
 [![Join the Gitter Chat](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/QuantStack/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
@@ -13,11 +21,21 @@ SIMD (Single Instruction, Multiple Data) is a feature of microprocessors that ha
 on a batch of values at once, and thus provide a way to significantly accelerate code execution. However, these instructions differ between microprocessor
 vendors and compilers.
 
-`xsimd` provides a unified means for using these features for library authors. Namely, it enables manipulation of batches of numbers with the same arithmetic
-operators as for single values. It also provides accelerated implementation of common mathematical functions operating on batches.
+`xsimd` provides a unified means for using these features for library authors. Namely, it enables manipulation of batches of numbers with the same arithmetic operators as for single values. It also provides accelerated implementation of common mathematical functions operating on batches.
 
-You can find out more about this implementation of C++ wrappers for SIMD intrinsics at the [The C++ Scientist](http://johanmabille.github.io/blog/archives/).
-The mathematical functions are a lightweight implementation of the algorithms used in [boost.SIMD](https://github.com/NumScale/boost.simd).
+## Adoption
+
+Beyond Xtensor, Xsimd has been adopted by major open-source projects, such as Mozilla Firefox, Apache Arrow, Pythran, and Krita.
+
+## History
+
+The XSimd project started with a series of blog articles by Johan Mabille on how to implement wrappers for SIMD intrinsicts.
+The archives of the blog can be found here: [The C++ Scientist](http://johanmabille.github.io/blog/archives/). The design described in
+the articles remained close to the actual architecture of XSimd up until Version 8.0.
+
+The mathematical functions are a lightweight implementation of the algorithms originally implemented in the now deprecated [boost.SIMD](https://github.com/NumScale/boost.simd) project.
+
+## Requirements
 
 `xsimd` requires a C++11 compliant compiler. The following C++ compilers are supported:
 
@@ -35,6 +53,8 @@ x86          | SSE2, SSE3, SSSE3, SSE4.1, SSE4.2, AVX, AVX2, FMA3+SSE, FMA3+AVX,
 x86          | AVX512BW, AVX512CD, AVX512DQ, AVX512F (gcc7 and higher)
 x86 AMD      | FMA4
 ARM          | NEON, NEON64, SVE128/256/512 (fixed vector size)
+WebAssembly  | WASM
+RISC-V       | RISC-V128/256/512 (fixed vector size)
 
 ## Installation
 
@@ -77,6 +97,8 @@ http://xsimd.readthedocs.io/
 | `xsimd` | `xtl` (optional) |
 |---------|------------------|
 |  master |     ^0.7.0       |
+|  12.x   |     ^0.7.0       |
+|  11.x   |     ^0.7.0       |
 |  10.x   |     ^0.7.0       |
 |   9.x   |     ^0.7.0       |
 |   8.x   |     ^0.7.0       |

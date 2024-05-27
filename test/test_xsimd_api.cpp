@@ -130,6 +130,14 @@ struct xsimd_api_scalar_types_functions
         CHECK_EQ(extract(xsimd::bitwise_and(T(val0), T(val1))), r);
     }
 
+    void test_bitwise_cast()
+    {
+        value_type val(1);
+        xsimd::as_unsigned_integer_t<value_type> r;
+        std::memcpy((void*)&r, (void*)&val, sizeof(val));
+        CHECK_EQ(extract(xsimd::bitwise_cast<value_type>(val)), r);
+    }
+
     void test_bitwise_andnot()
     {
         value_type val0(1);
@@ -665,11 +673,11 @@ struct xsimd_api_float_types_functions
     {
         value_type val0(3);
         value_type val1(4);
-#ifndef EMSCRIPTEN
-        CHECK_EQ(extract(xsimd::polar(T(val0), T(val1))), std::polar(val0, val1));
-#else
+#if defined(EMSCRIPTEN) || (defined(__APPLE__) && defined(XSIMD_WITH_NEON64))
         CHECK_EQ(std::real(extract(xsimd::polar(T(val0), T(val1)))), doctest::Approx(std::real(std::polar(val0, val1))));
         CHECK_EQ(std::imag(extract(xsimd::polar(T(val0), T(val1)))), doctest::Approx(std::imag(std::polar(val0, val1))));
+#else
+        CHECK_EQ(extract(xsimd::polar(T(val0), T(val1))), std::polar(val0, val1));
 #endif
     }
     void test_pow()
@@ -1154,6 +1162,20 @@ struct xsimd_api_all_types_functions
         value_type val0(1);
         value_type val1(3);
         CHECK_EQ(extract(xsimd::add(T(val0), T(val1))), val0 + val1);
+    }
+
+    void test_avg()
+    {
+        value_type val0(1);
+        value_type val1(3);
+        CHECK_EQ(extract(xsimd::avg(T(val0), T(val1))), (val0 + val1) / value_type(2));
+
+        value_type val2(2);
+        value_type val3(3);
+        if (std::is_integral<value_type>::value)
+            CHECK_EQ(extract(xsimd::avgr(T(val2), T(val3))), (val2 + val3 + 1) / value_type(2));
+        else
+            CHECK_EQ(extract(xsimd::avgr(T(val2), T(val3))), (val2 + val3) / value_type(2));
     }
 
     void test_decr()

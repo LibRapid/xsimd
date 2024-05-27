@@ -273,11 +273,204 @@ TEST_CASE_TEMPLATE("[slide]", B, BATCH_INT_TYPES)
 #endif
 
 template <class B>
+struct compress_test
+{
+    using batch_type = B;
+    using value_type = typename B::value_type;
+    using mask_batch_type = typename B::batch_bool_type;
+
+    static constexpr size_t size = B::size;
+    std::array<value_type, size> input;
+    std::array<bool, size> mask;
+    std::array<value_type, size> expected;
+
+    compress_test()
+    {
+        for (size_t i = 0; i < size; ++i)
+        {
+            input[i] = i;
+        }
+    }
+
+    void full()
+    {
+        std::fill(mask.begin(), mask.end(), true);
+
+        for (size_t i = 0; i < size; ++i)
+            expected[i] = input[i];
+
+        auto b = xsimd::compress(
+            batch_type::load_unaligned(input.data()),
+            mask_batch_type::load_unaligned(mask.data()));
+        CHECK_BATCH_EQ(b, expected);
+    }
+
+    void empty()
+    {
+        std::fill(mask.begin(), mask.end(), false);
+
+        for (size_t i = 0; i < size; ++i)
+            expected[i] = 0;
+
+        auto b = xsimd::compress(
+            batch_type::load_unaligned(input.data()),
+            mask_batch_type::load_unaligned(mask.data()));
+        CHECK_BATCH_EQ(b, expected);
+    }
+
+    void interleave()
+    {
+        for (size_t i = 0; i < size; ++i)
+            mask[i] = i % 2 == 0;
+
+        for (size_t i = 0; i < size; ++i)
+            expected[i] = i < size / 2 ? input[2 * i] : 0;
+
+        auto b = xsimd::compress(
+            batch_type::load_unaligned(input.data()),
+            mask_batch_type::load_unaligned(mask.data()));
+        CHECK_BATCH_EQ(b, expected);
+    }
+
+    void generic()
+    {
+        for (size_t i = 0; i < size; ++i)
+            mask[i] = i % 3 == 0;
+
+        for (size_t i = 0; i < size; ++i)
+            expected[i] = i < size / 3 ? input[3 * i] : 0;
+
+        auto b = xsimd::compress(
+            batch_type::load_unaligned(input.data()),
+            mask_batch_type::load_unaligned(mask.data()));
+        CHECK_BATCH_EQ(b, expected);
+    }
+};
+
+TEST_CASE_TEMPLATE("[compress]", B, BATCH_FLOAT_TYPES, xsimd::batch<uint32_t>, xsimd::batch<int32_t>, xsimd::batch<uint64_t>, xsimd::batch<int64_t>)
+{
+    compress_test<B> Test;
+    SUBCASE("empty")
+    {
+        Test.empty();
+    }
+    SUBCASE("full")
+    {
+        Test.full();
+    }
+    // SUBCASE("interleave")
+    //{
+    //     Test.interleave();
+    // }
+    // SUBCASE("generic")
+    //{
+    //     Test.generic();
+    // }
+}
+
+template <class B>
+struct expand_test
+{
+    using batch_type = B;
+    using value_type = typename B::value_type;
+    using mask_batch_type = typename B::batch_bool_type;
+
+    static constexpr size_t size = B::size;
+    std::array<value_type, size> input;
+    std::array<bool, size> mask;
+    std::array<value_type, size> expected;
+
+    expand_test()
+    {
+        for (size_t i = 0; i < size; ++i)
+        {
+            input[i] = i;
+        }
+    }
+
+    void full()
+    {
+        std::fill(mask.begin(), mask.end(), true);
+
+        for (size_t i = 0; i < size; ++i)
+            expected[i] = input[i];
+
+        auto b = xsimd::expand(
+            batch_type::load_unaligned(input.data()),
+            mask_batch_type::load_unaligned(mask.data()));
+        CHECK_BATCH_EQ(b, expected);
+    }
+
+    void empty()
+    {
+        std::fill(mask.begin(), mask.end(), false);
+
+        for (size_t i = 0; i < size; ++i)
+            expected[i] = 0;
+
+        auto b = xsimd::expand(
+            batch_type::load_unaligned(input.data()),
+            mask_batch_type::load_unaligned(mask.data()));
+        CHECK_BATCH_EQ(b, expected);
+    }
+
+    void interleave()
+    {
+        for (size_t i = 0; i < size; ++i)
+            mask[i] = i % 2 == 0;
+
+        for (size_t i = 0, j = 0; i < size; ++i)
+            expected[i] = mask[i] ? input[j++] : 0;
+
+        auto b = xsimd::expand(
+            batch_type::load_unaligned(input.data()),
+            mask_batch_type::load_unaligned(mask.data()));
+        CHECK_BATCH_EQ(b, expected);
+    }
+
+    void generic()
+    {
+        for (size_t i = 0; i < size; ++i)
+            mask[i] = i % 3 == 0;
+
+        for (size_t i = 0, j = 0; i < size; ++i)
+            expected[i] = mask[i] ? input[j++] : 0;
+
+        auto b = xsimd::expand(
+            batch_type::load_unaligned(input.data()),
+            mask_batch_type::load_unaligned(mask.data()));
+        CHECK_BATCH_EQ(b, expected);
+    }
+};
+
+TEST_CASE_TEMPLATE("[expand]", B, BATCH_FLOAT_TYPES, xsimd::batch<uint32_t>, xsimd::batch<int32_t>, xsimd::batch<uint64_t>, xsimd::batch<int64_t>)
+{
+    expand_test<B> Test;
+    SUBCASE("empty")
+    {
+        Test.empty();
+    }
+    SUBCASE("full")
+    {
+        Test.full();
+    }
+    SUBCASE("interleave")
+    {
+        Test.interleave();
+    }
+    SUBCASE("generic")
+    {
+        Test.generic();
+    }
+}
+
+template <class B>
 struct shuffle_test
 {
     using batch_type = B;
     using value_type = typename B::value_type;
-    using mask_batch_type = xsimd::as_unsigned_integer_t<B>;
+    using arch_type = typename B::arch_type;
+    using mask_type = xsimd::as_unsigned_integer_t<value_type>;
     static constexpr size_t size = B::size;
     std::array<value_type, size> lhs;
     std::array<value_type, size> rhs;
@@ -305,7 +498,7 @@ struct shuffle_test
         };
 
         INFO("no op lhs");
-        B b_res_lhs = xsimd::shuffle(b_lhs, b_rhs, xsimd::make_batch_constant<mask_batch_type, no_op_lhs_generator>());
+        B b_res_lhs = xsimd::shuffle(b_lhs, b_rhs, xsimd::make_batch_constant<mask_type, arch_type, no_op_lhs_generator>());
         CHECK_BATCH_EQ(b_res_lhs, b_lhs);
 
         struct no_op_rhs_generator
@@ -317,7 +510,7 @@ struct shuffle_test
         };
 
         INFO("no op rhs");
-        B b_res_rhs = xsimd::shuffle(b_lhs, b_rhs, xsimd::make_batch_constant<mask_batch_type, no_op_rhs_generator>());
+        B b_res_rhs = xsimd::shuffle(b_lhs, b_rhs, xsimd::make_batch_constant<mask_type, arch_type, no_op_rhs_generator>());
         CHECK_BATCH_EQ(b_res_rhs, b_rhs);
     }
 
@@ -342,7 +535,7 @@ struct shuffle_test
         }
         B b_ref = B::load_unaligned(ref.data());
 
-        B b_res = xsimd::shuffle(b_lhs, b_rhs, xsimd::make_batch_constant<mask_batch_type, generic_generator>());
+        B b_res = xsimd::shuffle(b_lhs, b_rhs, xsimd::make_batch_constant<mask_type, arch_type, generic_generator>());
         CHECK_BATCH_EQ(b_res, b_ref);
     }
 
@@ -364,7 +557,7 @@ struct shuffle_test
             ref[i] = (i > 2) ? lhs[0] : rhs[0];
         B b_ref = B::load_unaligned(ref.data());
 
-        B b_res = xsimd::shuffle(b_lhs, b_rhs, xsimd::make_batch_constant<mask_batch_type, pick_generator>());
+        B b_res = xsimd::shuffle(b_lhs, b_rhs, xsimd::make_batch_constant<mask_type, arch_type, pick_generator>());
         CHECK_BATCH_EQ(b_res, b_ref);
     }
 
@@ -388,7 +581,7 @@ struct shuffle_test
             B b_ref = B::load_unaligned(ref.data());
 
             INFO("swizzle first batch");
-            B b_res = xsimd::shuffle(b_lhs, b_rhs, xsimd::make_batch_constant<mask_batch_type, swizzle_lo_generator>());
+            B b_res = xsimd::shuffle(b_lhs, b_rhs, xsimd::make_batch_constant<mask_type, arch_type, swizzle_lo_generator>());
             CHECK_BATCH_EQ(b_res, b_ref);
         }
 
@@ -407,7 +600,7 @@ struct shuffle_test
             B b_ref = B::load_unaligned(ref.data());
 
             INFO("swizzle second batch");
-            B b_res = xsimd::shuffle(b_lhs, b_rhs, xsimd::make_batch_constant<mask_batch_type, swizzle_hi_generator>());
+            B b_res = xsimd::shuffle(b_lhs, b_rhs, xsimd::make_batch_constant<mask_type, arch_type, swizzle_hi_generator>());
             CHECK_BATCH_EQ(b_res, b_ref);
         }
     }
@@ -431,7 +624,7 @@ struct shuffle_test
         B b_ref = B::load_unaligned(ref.data());
 
         INFO("select");
-        B b_res = xsimd::shuffle(b_lhs, b_rhs, xsimd::make_batch_constant<mask_batch_type, select_generator>());
+        B b_res = xsimd::shuffle(b_lhs, b_rhs, xsimd::make_batch_constant<mask_type, arch_type, select_generator>());
         CHECK_BATCH_EQ(b_res, b_ref);
     }
 
@@ -454,7 +647,7 @@ struct shuffle_test
         B b_ref_lo = B::load_unaligned(ref_lo.data());
 
         INFO("zip_lo");
-        B b_res_lo = xsimd::shuffle(b_lhs, b_rhs, xsimd::make_batch_constant<mask_batch_type, zip_lo_generator>());
+        B b_res_lo = xsimd::shuffle(b_lhs, b_rhs, xsimd::make_batch_constant<mask_type, arch_type, zip_lo_generator>());
         CHECK_BATCH_EQ(b_res_lo, b_ref_lo);
 
         struct zip_hi_generator
@@ -473,7 +666,7 @@ struct shuffle_test
         B b_ref_hi = B::load_unaligned(ref_hi.data());
 
         INFO("zip_hi");
-        B b_res_hi = xsimd::shuffle(b_lhs, b_rhs, xsimd::make_batch_constant<mask_batch_type, zip_hi_generator>());
+        B b_res_hi = xsimd::shuffle(b_lhs, b_rhs, xsimd::make_batch_constant<mask_type, arch_type, zip_hi_generator>());
         CHECK_BATCH_EQ(b_res_hi, b_ref_hi);
     }
 };

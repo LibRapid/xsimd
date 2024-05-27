@@ -75,6 +75,17 @@ namespace xsimd
     struct get_bool;
 
     template <class T>
+    struct get_bool<batch_bool<T>, 1> : public get_bool_base<T, 1>
+    {
+        using type = batch_bool<T>;
+        type all_true = type(true);
+        type all_false = type(false);
+        type half = { 0 };
+        type ihalf = { 1 };
+        type interspersed = { 0 };
+    };
+
+    template <class T>
     struct get_bool<batch_bool<T>, 2> : public get_bool_base<T, 2>
     {
         using type = batch_bool<T>;
@@ -200,6 +211,7 @@ struct batch_bool_test
     {
         batch_bool_type a;
         // value uninitialized, cannot test it.
+        (void)a;
 
         bool_array_type res;
         batch_bool_type b(true);
@@ -317,8 +329,7 @@ struct batch_bool_test
         }
         // operator==
         {
-            bool res = xsimd::all(bool_g.half == !bool_g.ihalf);
-            CHECK_UNARY(res);
+            CHECK_BATCH_EQ(bool_g.half, !bool_g.ihalf);
         }
         // operator &&
         {
@@ -359,38 +370,29 @@ struct batch_bool_test
         auto bool_g = xsimd::get_bool<batch_bool_type> {};
         // operator version
         {
-            bool res = xsimd::all(bool_g.half == ~bool_g.ihalf);
             INFO("operator~");
-            CHECK_UNARY(res);
+            CHECK_BATCH_EQ(bool_g.half, ~bool_g.ihalf);
         }
         {
-            bool res = xsimd::all((bool_g.half | bool_g.ihalf) == bool_g.all_true);
-            // FIXME: this volatile statement is useless on its own, but it
-            // workaround a bug in MSVC 2022 on avx2 that shows up in CI.
-            volatile auto _ = ((bool_g.half | bool_g.ihalf) == bool_g.all_true);
             INFO("operator|");
-            CHECK_UNARY(res);
+            CHECK_BATCH_EQ(bool_g.half | bool_g.ihalf, bool_g.all_true);
         }
         {
-            bool res = xsimd::all((bool_g.half & bool_g.ihalf) == bool_g.all_false);
             INFO("operator&");
-            CHECK_UNARY(res);
+            CHECK_BATCH_EQ(bool_g.half & bool_g.ihalf, bool_g.all_false);
         }
         // free function version
         {
-            bool res = xsimd::all(bool_g.half == xsimd::bitwise_not(bool_g.ihalf));
             INFO("bitwise_not");
-            CHECK_UNARY(res);
+            CHECK_BATCH_EQ(bool_g.half, xsimd::bitwise_not(bool_g.ihalf));
         }
         {
-            bool res = xsimd::all(xsimd::bitwise_or(bool_g.half, bool_g.ihalf) == bool_g.all_true);
             INFO("bitwise_or");
-            CHECK_UNARY(res);
+            CHECK_BATCH_EQ(xsimd::bitwise_or(bool_g.half, bool_g.ihalf), bool_g.all_true);
         }
         {
-            bool res = xsimd::all(xsimd::bitwise_and(bool_g.half, bool_g.ihalf) == bool_g.all_false);
             INFO("bitwise_and");
-            CHECK_UNARY(res);
+            CHECK_BATCH_EQ(xsimd::bitwise_and(bool_g.half, bool_g.ihalf), bool_g.all_false);
         }
     }
 
@@ -407,9 +409,8 @@ struct batch_bool_test
         {
             auto tmp = bool_g.half;
             tmp &= bool_g.half;
-            bool res = xsimd::all(tmp == bool_g.half);
             INFO("operator&=");
-            CHECK_UNARY(res);
+            CHECK_BATCH_EQ(tmp, bool_g.half);
         }
         {
             auto tmp = bool_g.half;
@@ -445,13 +446,12 @@ struct batch_bool_test
         auto bool_g = xsimd::get_bool<batch_bool_type> {};
         // eq
         {
-            bool res = xsimd::all(xsimd::eq(bool_g.half, !bool_g.ihalf));
-            CHECK_UNARY(res);
+            CHECK_BATCH_EQ(bool_g.half, !bool_g.ihalf);
+            CHECK_BATCH_EQ(xsimd::eq(bool_g.half, !bool_g.ihalf), bool_g.all_true);
         }
         // neq
         {
-            bool res = xsimd::all(xsimd::neq(bool_g.half, bool_g.ihalf));
-            CHECK_UNARY(res);
+            CHECK_BATCH_EQ(xsimd::neq(bool_g.half, bool_g.ihalf), bool_g.all_true);
         }
     }
 
