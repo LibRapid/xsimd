@@ -124,6 +124,7 @@ jobs:
                   $CMAKE_EXTRA_ARGS \
                   -DCMAKE_CXX_FLAGS='$CXX_FLAGS' \
                   -G Ninja
+                  -DCMAKE_CXX_STANDARD=17
     - name: Build
       run: ninja -C _build
     - name: Test

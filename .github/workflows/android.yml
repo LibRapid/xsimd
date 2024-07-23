@@ -32,5 +32,6 @@ jobs:
                      -DANDROID_ABI=$ABI \
                      -DANDROID_PLATFORM=android-$API \
                      -DBUILD_TESTS=ON -DDOWNLOAD_DOCTEST=ON -DCMAKE_BUILD_TYPE=Release
+                     -DCMAKE_CXX_STANDARD=17
 
           cmake --build . --verbose
