@@ -33,5 +33,7 @@ jobs:
                      -DANDROID_PLATFORM=android-$API \
                      -DBUILD_TESTS=ON -DDOWNLOAD_DOCTEST=ON -DCMAKE_BUILD_TYPE=Release
                      -DCMAKE_CXX_STANDARD=17
+                     -DCMAKE_CXX_STANDARD_REQUIRED=ON
+                     -DCMAKE_CXX_FLAGS="-std=c++17"
 
           cmake --build . --verbose

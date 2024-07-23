@@ -111,7 +111,7 @@ jobs:
         fi
 
         # Cheap way of spotting uninitialized read
-        CXX_FLAGS="$CXX_FLAGS -ftrivial-auto-var-init=pattern"
+        CXX_FLAGS="$CXX_FLAGS -ftrivial-auto-var-init=pattern -std=c++17"
 
         mkdir _build
         cd _build
